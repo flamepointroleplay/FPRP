@@ -48,48 +48,83 @@ npm run preview
 
 ---
 
-## Part 2 — Deploy to Cloudflare Pages
+## Part 2 — Deploy to Cloudflare
 
-This project deploys via **Cloudflare Pages' Git integration** — push to GitHub, Cloudflare
-builds and publishes automatically. No command-line deploy step needed, and it's entirely free
-for a site this size (Pages' free tier includes unlimited requests/bandwidth and 500 builds/month).
+This project deploys as a **Cloudflare Worker** (Workers & Pages → Git integration) named `fprp` —
+push to GitHub, Cloudflare installs dependencies, runs `npm run build`, and publishes
+automatically. It uses the free tier throughout: Workers requests, D1 (the database), and builds
+are all well within the free-tier limits for a site this size.
 
-### One-time setup
+### What it needs beyond the static site
 
-1. Go to the [Cloudflare dashboard](https://dash.cloudflare.com) → **Workers & Pages** → **Create**
-   → **Pages** → **Connect to Git**.
-2. Authorize Cloudflare's GitHub app and select this repository
-   (`flamepointroleplay/FPRP`).
-3. Set the build configuration:
-   - **Framework preset:** Astro
-   - **Build command:** `npm run build`
-   - **Build output directory:** `dist`
-4. Click **Save and Deploy**. Cloudflare will install dependencies, build, and publish the site —
-   you'll get a live URL like `fprp.pages.dev` within a minute or two.
+Because of the member/staff areas, this is no longer a purely static site — it needs two things
+configured on the Cloudflare side:
+
+- **A D1 database** (already created: `fprp-db`, bound as `DB` in `wrangler.jsonc`, which is
+  committed to the repo so Cloudflare's build picks up the binding automatically).
+- **Two secrets** on the `fprp` Worker — go to **Settings → Variables and Secrets** and add
+  `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET` (from your app at
+  [discord.com/developers/applications](https://discord.com/developers/applications)). Add them
+  as **Secrets**, not plain variables, and never commit them to the repo — locally they live in a
+  gitignored `.dev.vars` file instead (copy `.dev.vars.example` and fill in real values).
+
+### Database migrations
+
+New SQL files in `migrations/` need to be applied to both the local dev database and the real one:
+
+```bash
+npx wrangler d1 execute fprp-db --local --file=./migrations/000X_something.sql
+npx wrangler d1 execute fprp-db --remote --file=./migrations/000X_something.sql
+```
 
 ### Custom domain
 
-If you have a domain already on your Cloudflare account:
-
-1. In your new Pages project, go to **Custom domains** → **Set up a custom domain**.
-2. Enter your domain (`flamepointroleplay.com`) and follow the prompts. Since the domain's DNS is
-   already on Cloudflare, this is usually automatic — no manual DNS record editing required.
+Already set up: `flamepointroleplay.com` is attached as a custom domain on the `fprp` Worker
+(under its **Domains** tab), pointing at the production deployment.
 
 ### Branch workflow (dev vs. production)
 
 `main` is the **production branch** — every push to `main` deploys straight to
-`flamepointroleplay.com`. To avoid pushing untested changes live:
+`flamepointroleplay.com`. To avoid pushing untested changes live, do your work on the `dev` branch
+and merge to `main` only when you're happy with it
+(`git checkout main && git merge dev && git push`, or a GitHub pull request).
 
-1. Do your work on the `dev` branch (`git checkout dev`, or branch off it for a specific change).
-2. Push `dev` to GitHub. Cloudflare automatically builds a **preview deployment** for it — check
-   the **Deployments** tab in the Cloudflare dashboard (or Workers & Pages project) for the
-   preview URL. Nothing on the live site changes.
-3. Once you're happy with how it looks, merge `dev` into `main` (locally: `git checkout main && git merge dev && git push`,
-   or open a pull request on GitHub) — *that* push triggers the production deploy.
+Every push (to any branch) also creates its own **version** under the Worker's **Deployments**
+tab, each with its own preview URL — useful for confirming a build succeeds without touching
+production. One limitation worth knowing: that preview URL changes on every push (it's keyed to
+the version hash, e.g. `07d0c9e2-fprp.flamepointroleplay.workers.dev`), so Discord login won't
+work there unless you register that exact URL as a redirect URI in the Discord app each time. For
+day-to-day testing of the login flow, use `npm run dev` locally instead (`localhost:4321` is
+already a registered redirect URI) — treat merging to `main` as the real end-to-end test.
 
 ---
 
-## Part 3 — Customize the Content
+## Part 3 — The Member / Supervisor / Chief / Staff Areas
+
+Anyone can log in at `/login` with their Discord account — this creates their account
+automatically, but it sits in a **pending** state (visible under **Pending Approvals** at
+`/staff`) until a Staff member approves it and assigns their tier, department, rank, and who they
+report to.
+
+There are four tiers, lowest to highest: **Member → Supervisor → Chief → Staff.**
+
+- **`/member`** — every logged-in, approved person lands here: links to internal resources (added
+  by Staff, see below) and their own leave-of-absence (LOA) request history + a form to submit a
+  new one (only available once they have a supervisor assigned).
+- **`/team`** — visible to Supervisor/Chief/Staff: manage your **direct reports** (people whose
+  "reports to" is set to you) — edit their tier/department/rank/who they report to, suspend their
+  access, and approve or deny their pending LOA requests. A Supervisor only sees the Members
+  reporting to them; a Chief only sees the Supervisors reporting to them, and so on up the chain.
+- **`/staff`** — Staff-only: the pending-approval queue, and **Manage Resources** — add or remove
+  the links that show up on `/member` (set who can see each one: Member+, Supervisor+, Chief+, or
+  Staff+).
+
+Nobody can promote someone to a tier higher than their own, so a Supervisor can't accidentally
+(or otherwise) create a Chief or Staff account.
+
+---
+
+## Part 4 — Customize the Content
 
 ### 1. Discord invite link
 Search for `discord.gg/5GKxAhPa4` across `src/` and replace it with your real invite if it changes.
