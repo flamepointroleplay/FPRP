@@ -72,14 +72,20 @@ for a site this size (Pages' free tier includes unlimited requests/bandwidth and
 If you have a domain already on your Cloudflare account:
 
 1. In your new Pages project, go to **Custom domains** → **Set up a custom domain**.
-2. Enter your domain (e.g. `flamepointrp.com`) and follow the prompts. Since the domain's DNS is
+2. Enter your domain (`flamepointroleplay.com`) and follow the prompts. Since the domain's DNS is
    already on Cloudflare, this is usually automatic — no manual DNS record editing required.
 
-### Updating the live site
+### Branch workflow (dev vs. production)
 
-Every push to the `main` branch triggers a new build and deploy automatically. Cloudflare also
-builds a preview deployment for any other branch or pull request, so you can check changes before
-merging them to `main`.
+`main` is the **production branch** — every push to `main` deploys straight to
+`flamepointroleplay.com`. To avoid pushing untested changes live:
+
+1. Do your work on the `dev` branch (`git checkout dev`, or branch off it for a specific change).
+2. Push `dev` to GitHub. Cloudflare automatically builds a **preview deployment** for it — check
+   the **Deployments** tab in the Cloudflare dashboard (or Workers & Pages project) for the
+   preview URL. Nothing on the live site changes.
+3. Once you're happy with how it looks, merge `dev` into `main` (locally: `git checkout main && git merge dev && git push`,
+   or open a pull request on GitHub) — *that* push triggers the production deploy.
 
 ---
 
