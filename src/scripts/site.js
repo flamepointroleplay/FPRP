@@ -15,6 +15,44 @@ if (navToggle && header) {
   });
 }
 
+// Departments nav dropdown
+const deptDropdown = document.getElementById("departments-dropdown");
+const deptTrigger = document.getElementById("departments-trigger");
+if (deptDropdown && deptTrigger) {
+  deptTrigger.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isOpen = deptDropdown.classList.toggle("open");
+    deptTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  });
+
+  deptDropdown.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      deptDropdown.classList.remove("open");
+      deptTrigger.setAttribute("aria-expanded", "false");
+    });
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!deptDropdown.contains(e.target)) {
+      deptDropdown.classList.remove("open");
+      deptTrigger.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+
+// Department rank selector
+const rankSelect = document.getElementById("rank-select");
+if (rankSelect) {
+  const panels = document.querySelectorAll(".rank-panel");
+  const showRank = (id) => {
+    panels.forEach((panel) => {
+      panel.hidden = panel.dataset.rankId !== id;
+    });
+  };
+  rankSelect.addEventListener("change", () => showRank(rankSelect.value));
+  if (rankSelect.value) showRank(rankSelect.value);
+}
+
 // FAQ accordion
 document.querySelectorAll(".accordion-trigger").forEach((trigger) => {
   trigger.addEventListener("click", () => {

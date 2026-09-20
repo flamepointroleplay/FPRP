@@ -1,0 +1,181 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+// Real LSFD rank structure, highest to lowest. Descriptions are drafted
+// placeholders — edit the `description` fields whenever you have the exact wording.
+const rankGroups = [
+  {
+    category: "Department Leadership",
+    ranks: [
+      {
+        id: "fire-chief",
+        title: "Fire Chief",
+        description: "Head of the department — final authority on policy, promotions, and department standards.",
+      },
+      {
+        id: "deputy-fire-chief",
+        title: "Deputy Fire Chief",
+        description: "Second-in-command — oversees department operations and stands in for the Fire Chief.",
+      },
+      {
+        id: "assistant-fire-chief-1",
+        title: "Assistant Fire Chief 1",
+        description: "Senior chief officer overseeing a major department function.",
+      },
+      {
+        id: "assistant-fire-chief-2",
+        title: "Assistant Fire Chief 2",
+        description: "Senior chief officer overseeing a major department function.",
+      },
+      {
+        id: "chief-of-staff",
+        title: "Chief of Staff",
+        description: "Manages department administration, scheduling, and coordination between leadership and staff.",
+      },
+    ],
+  },
+  {
+    category: "High Command",
+    ranks: [
+      {
+        id: "division-chief",
+        title: "Division Chief",
+        description: "Oversees multiple battalions and coordinates large-scale operations.",
+      },
+      {
+        id: "safety-officer",
+        title: "Safety Officer",
+        description: "Responsible for on-scene safety standards and enforcing department safety procedures.",
+      },
+      {
+        id: "battalion-chief",
+        title: "Battalion Chief",
+        description: "Commands major incidents and oversees multiple companies within a battalion.",
+      },
+    ],
+  },
+  {
+    category: "Station Command",
+    ranks: [
+      {
+        id: "captain",
+        title: "Captain",
+        description: "Commands a station/shift and manages day-to-day company operations.",
+      },
+    ],
+  },
+  {
+    category: "Company Command",
+    ranks: [
+      {
+        id: "lieutenant",
+        title: "Lieutenant",
+        description: "First-line supervisor on a crew, reporting to the Captain.",
+      },
+      {
+        id: "engineer",
+        title: "Engineer",
+        description: "Operates and maintains apparatus (engines, ladders) on scene.",
+      },
+    ],
+  },
+  {
+    category: "Firefighters",
+    ranks: [
+      {
+        id: "firefighter-2",
+        title: "Firefighter 2",
+        description: "Experienced firefighter cleared for full duty on all calls.",
+      },
+      {
+        id: "firefighter-1",
+        title: "Firefighter 1",
+        description: "Entry-level firefighter, completing training under supervision.",
+      },
+    ],
+  },
+];
+
+const ranks = rankGroups.flatMap((group) => group.ranks);
+---
+
+<Layout
+  title="Los Santos Fire Department | Flame Point Roleplay"
+  description="Learn about the Los Santos Fire Department at Flame Point Roleplay — structure, ranks, and how to join."
+  active="lsfd"
+>
+  <section class="page-hero">
+    <div class="container">
+      <p class="eyebrow reveal">Departments</p>
+      <h1 class="reveal">Los Santos Fire Department</h1>
+      <p class="hero-sub reveal">
+        The LSFD handles structure fires, vehicle extractions, hazmat response, and general rescue
+        roleplay across the city — a fully staffed, trained department built for immersive,
+        realistic call-outs.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container" style="max-width: 780px;">
+      <p class="section-kicker">About the Department</p>
+      <h2>Built for Real Call-Outs</h2>
+      <p>
+        The Fire Department is one of Flame Point's most active roleplay divisions. Members
+        respond to dynamic incidents — structure fires, vehicle collisions, hazmat scenes, and
+        technical rescues — with realistic apparatus, equipment, and radio procedure. Training is
+        ongoing, and members progress through the ranks as they build experience and take on more
+        responsibility.
+      </p>
+      <p>
+        Whether you're looking for fast-paced action roleplay or the slower-paced structure of
+        running a shift and mentoring new recruits, there's a place for you in the department.
+      </p>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container" style="max-width: 780px;">
+      <p class="section-kicker">Chain of Command</p>
+      <h2>Ranks</h2>
+      <p>Select a rank below to see what it does.</p>
+
+      <div class="field" style="max-width: 360px; margin-top: 24px;">
+        <label for="rank-select">Rank</label>
+        <select id="rank-select">
+          {
+            rankGroups.map((group) => (
+              <optgroup label={group.category}>
+                {group.ranks.map((rank) => (
+                  <option value={rank.id}>{rank.title}</option>
+                ))}
+              </optgroup>
+            ))
+          }
+        </select>
+      </div>
+
+      <div class="card" style="margin-top: 20px;">
+        {
+          ranks.map((rank, i) => (
+            <div class="rank-panel" data-rank-id={rank.id} hidden={i !== 0}>
+              <h3>{rank.title}</h3>
+              <p style="margin-bottom: 0;">{rank.description}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="container cta-inner reveal">
+      <h2>Ready to Join the LSFD?</h2>
+      <p>Whitelist applications and department sign-ups happen through Discord.</p>
+      <div class="hero-actions">
+        <a href="https://discord.gg/5GKxAhPa4" class="btn btn-primary btn-lg" target="_blank" rel="noopener">Join Our Discord</a>
+        <a href="/apply" class="btn btn-outline btn-lg">Apply for Whitelist</a>
+      </div>
+    </div>
+  </section>
+</Layout>

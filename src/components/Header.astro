@@ -1,8 +1,9 @@
 ---
 interface Props {
-  active?: "rules" | "apply";
+  active?: "rules" | "apply" | "lsfd" | "lscso";
 }
 const { active } = Astro.props;
+const departmentActive = active === "lsfd" || active === "lscso";
 ---
 
 <header class="site-header" id="site-header">
@@ -15,6 +16,20 @@ const { active } = Astro.props;
     <nav class="main-nav" id="main-nav">
       <a href="/#features">Features</a>
       <a href="/#join">How to Join</a>
+      <div class="nav-dropdown" id="departments-dropdown">
+        <button
+          type="button"
+          class:list={["nav-dropdown-trigger", { active: departmentActive }]}
+          id="departments-trigger"
+          aria-expanded="false"
+        >
+          Departments
+        </button>
+        <div class="nav-dropdown-menu" id="departments-menu">
+          <a href="/departments/lsfd" class={active === "lsfd" ? "active" : undefined}>Los Santos Fire Department</a>
+          <a href="/departments/lscso" class={active === "lscso" ? "active" : undefined}>Los Santos County Sheriff's Office</a>
+        </div>
+      </div>
       <a href="/rules" class={active === "rules" ? "active" : undefined}>Rules</a>
       <a href="/apply" class={active === "apply" ? "active" : undefined}>Apply</a>
       <a href="/#faq">FAQ</a>
