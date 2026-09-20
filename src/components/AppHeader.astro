@@ -1,0 +1,38 @@
+---
+import { actions } from "astro:actions";
+import { tierAtLeast, tierLabel } from "../lib/tier";
+
+interface Props {
+  active: "member" | "team" | "staff";
+}
+
+const { active } = Astro.props;
+const user = Astro.locals.user!;
+---
+
+<div class="app-header">
+  <p class="eyebrow">
+    Logged in as {user.username} · <span class={`badge badge-${user.tier}`}>{tierLabel(user.tier)}</span>
+  </p>
+  <h1>Member Area</h1>
+  <nav class="app-nav">
+    <a href="/member" class={active === "member" ? "active" : undefined}>Member</a>
+    {
+      tierAtLeast(user.tier, "supervisor") && (
+        <a href="/team" class={active === "team" ? "active" : undefined}>
+          Team
+        </a>
+      )
+    }
+    {
+      tierAtLeast(user.tier, "staff") && (
+        <a href="/staff" class={active === "staff" ? "active" : undefined}>
+          Staff
+        </a>
+      )
+    }
+    <form action={actions.logout} method="POST" style="display:inline;">
+      <button type="submit" class="btn btn-ghost">Log Out</button>
+    </form>
+  </nav>
+</div>

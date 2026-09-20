@@ -1,0 +1,101 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import AppHeader from "../../components/AppHeader.astro";
+import { actions } from "astro:actions";
+import { env } from "cloudflare:workers";
+import { listVisibleResources, listLoaRequestsForUser } from "../../lib/db";
+
+export const prerender = false;
+
+const user = Astro.locals.user!;
+const db = env.DB;
+
+const loaResult = Astro.getActionResult(actions.submitLoa);
+
+const [resources, loaRequests] = await Promise.all([
+  listVisibleResources(db, user.tier),
+  listLoaRequestsForUser(db, user.id),
+]);
+---
+
+<Layout title="Member Area | Flame Point Roleplay" description="Flame Point Roleplay member area.">
+  <section class="app-shell">
+    <div class="container">
+      <AppHeader active="member" />
+
+      <div class="app-section">
+        <h2>Resources</h2>
+        {
+          resources.length === 0 ? (
+            <p class="empty-note">No resources have been added yet.</p>
+          ) : (
+            <div class="feature-grid" style="grid-template-columns: repeat(2, 1fr); margin-top: 24px;">
+              {resources.map((r) => (
+                <a href={r.url} target="_blank" rel="noopener" class="card feature-card">
+                  <p class="section-kicker" style="margin-bottom: 6px;">{r.category ?? "General"}</p>
+                  <h3 style="margin-bottom: 0;">{r.title}</h3>
+                </a>
+              ))}
+            </div>
+          )
+        }
+      </div>
+
+      <div class="app-section">
+        <h2>Leave of Absence</h2>
+
+        {loaResult?.error && <div class="alert alert-error">{loaResult.error.message}</div>}
+
+        {
+          user.supervisorId ? (
+            <form action={actions.submitLoa} method="POST" class="card" style="max-width: 560px;">
+              <div class="field-row">
+                <div class="field">
+                  <label for="startDate">Start date</label>
+                  <input type="date" id="startDate" name="startDate" required />
+                </div>
+                <div class="field">
+                  <label for="endDate">End date</label>
+                  <input type="date" id="endDate" name="endDate" required />
+                </div>
+              </div>
+              <div class="field">
+                <label for="reason">Reason</label>
+                <textarea id="reason" name="reason" rows="3" required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Submit Request</button>
+            </form>
+          ) : (
+            <p class="empty-note">
+              You don't have a supervisor assigned yet, so LOA requests aren't available. Ask a
+              staff member if you need one.
+            </p>
+          )
+        }
+
+        {
+          loaRequests.length > 0 && (
+            <table class="data-table" style="margin-top: 32px;">
+              <thead>
+                <tr>
+                  <th>Dates</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loaRequests.map((r) => (
+                  <tr>
+                    <td>{r.start_date} → {r.end_date}</td>
+                    <td>{r.reason}</td>
+                    <td><span class={`badge badge-${r.status === "pending" ? "pending" : r.status === "approved" ? "approved" : "denied"}`}>{r.status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )
+        }
+      </div>
+    </div>
+  </section>
+</Layout>

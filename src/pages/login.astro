@@ -1,0 +1,37 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+export const prerender = false;
+
+const errorMessages: Record<string, string> = {
+  state: "Login session expired — please try again.",
+  token: "Discord didn't confirm the login — please try again.",
+  profile: "Couldn't read your Discord profile — please try again.",
+  suspended: "Your access has been suspended. Contact a staff member if you think this is a mistake.",
+};
+
+const error = Astro.url.searchParams.get("error");
+const errorMessage = error ? errorMessages[error] ?? "Something went wrong — please try again." : null;
+---
+
+<Layout title="Member Login | Flame Point Roleplay" description="Log in with Discord to access the Flame Point Roleplay member area.">
+  <section class="app-shell">
+    <div class="container" style="max-width: 480px; text-align: center;">
+      <p class="eyebrow">Member Area</p>
+      <h1>Log In</h1>
+      <p class="hero-sub" style="margin-left: auto; margin-right: auto;">
+        Log in with your Discord account to access member documents, submit leave requests, and
+        (if you're staff) manage your team.
+      </p>
+
+      {errorMessage && <div class="alert alert-error">{errorMessage}</div>}
+
+      <a href="/auth/discord" class="btn btn-primary btn-lg">Login with Discord</a>
+
+      <p class="hero-meta" style="margin-top: 24px;">
+        New here? Logging in creates an account automatically — a staff member just needs to
+        approve it before you get access.
+      </p>
+    </div>
+  </section>
+</Layout>

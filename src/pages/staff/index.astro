@@ -1,0 +1,150 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import AppHeader from "../../components/AppHeader.astro";
+import { actions } from "astro:actions";
+import { env } from "cloudflare:workers";
+import { getPendingUsers, getPotentialSupervisors, listVisibleResources } from "../../lib/db";
+import { TIERS, tierLabel } from "../../lib/tier";
+
+export const prerender = false;
+
+const db = env.DB;
+
+const approveResult = Astro.getActionResult(actions.approveMember);
+const resourceResult = Astro.getActionResult(actions.addResource);
+
+const [pendingUsers, potentialSupervisors, resources] = await Promise.all([
+  getPendingUsers(db),
+  getPotentialSupervisors(db, "supervisor"),
+  listVisibleResources(db, "staff"),
+]);
+---
+
+<Layout title="Staff Area | Flame Point Roleplay" description="Staff administration area.">
+  <section class="app-shell">
+    <div class="container">
+      <AppHeader active="staff" />
+
+      <div class="app-section">
+        <h2>Pending Approvals</h2>
+        {approveResult?.error && <div class="alert alert-error">{approveResult.error.message}</div>}
+
+        {
+          pendingUsers.length === 0 ? (
+            <p class="empty-note">No pending signups.</p>
+          ) : (
+            <div style="display: flex; flex-direction: column; gap: 20px; margin-top: 24px;">
+              {pendingUsers.map((p) => (
+                <div class="card">
+                  <h3>{p.username}</h3>
+                  <form action={actions.approveMember} method="POST">
+                    <input type="hidden" name="userId" value={p.id} />
+                    <div class="field-row">
+                      <div class="field">
+                        <label>Tier</label>
+                        <select name="tier">
+                          {TIERS.map((t) => (
+                            <option value={t}>{tierLabel(t)}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div class="field">
+                        <label>Reports to</label>
+                        <select name="supervisorId">
+                          <option value="">— None —</option>
+                          {potentialSupervisors.map((s) => (
+                            <option value={s.id}>{s.username} ({tierLabel(s.tier)})</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div class="field-row">
+                      <div class="field">
+                        <label>Department</label>
+                        <input type="text" name="department" placeholder="e.g. Fire & Rescue" />
+                      </div>
+                      <div class="field">
+                        <label>Rank</label>
+                        <input type="text" name="rank" placeholder="e.g. Probationary" />
+                      </div>
+                    </div>
+                    <div class="hero-actions" style="justify-content: flex-start; margin-bottom: 0;">
+                      <button type="submit" class="btn btn-primary">Approve</button>
+                    </div>
+                  </form>
+                  <form action={actions.denyMember} method="POST" style="margin-top: 10px;">
+                    <input type="hidden" name="userId" value={p.id} />
+                    <button type="submit" class="btn btn-ghost">Deny</button>
+                  </form>
+                </div>
+              ))}
+            </div>
+          )
+        }
+      </div>
+
+      <div class="app-section">
+        <h2>Manage Resources</h2>
+        {resourceResult?.error && <div class="alert alert-error">{resourceResult.error.message}</div>}
+
+        <form action={actions.addResource} method="POST" class="card" style="max-width: 640px; margin-bottom: 24px;">
+          <div class="field">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" required />
+          </div>
+          <div class="field">
+            <label for="url">Link</label>
+            <input type="url" id="url" name="url" placeholder="https://..." required />
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="category">Category</label>
+              <input type="text" id="category" name="category" placeholder="e.g. General" />
+            </div>
+            <div class="field">
+              <label for="visibility">Visible to</label>
+              <select id="visibility" name="visibility">
+                {TIERS.map((t) => (
+                  <option value={t}>{tierLabel(t)}+</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Add Resource</button>
+        </form>
+
+        {
+          resources.length === 0 ? (
+            <p class="empty-note">No resources yet.</p>
+          ) : (
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Visibility</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {resources.map((r) => (
+                  <tr>
+                    <td><a href={r.url} target="_blank" rel="noopener" class="link-arrow">{r.title}</a></td>
+                    <td>{r.category ?? "—"}</td>
+                    <td><span class={`badge badge-${r.visibility}`}>{tierLabel(r.visibility)}+</span></td>
+                    <td>
+                      <form action={actions.deleteResource} method="POST">
+                        <input type="hidden" name="id" value={r.id} />
+                        <button type="submit" class="btn btn-ghost">Remove</button>
+                      </form>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )
+        }
+      </div>
+    </div>
+  </section>
+</Layout>

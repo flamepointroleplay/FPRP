@@ -1,0 +1,123 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import AppHeader from "../../components/AppHeader.astro";
+import { actions } from "astro:actions";
+import { env } from "cloudflare:workers";
+import { getDirectReports, listPendingLoaForSupervisor, getPotentialSupervisors } from "../../lib/db";
+import { TIERS, tierLabel } from "../../lib/tier";
+
+export const prerender = false;
+
+const user = Astro.locals.user!;
+const db = env.DB;
+
+const updateResult = Astro.getActionResult(actions.updateReport);
+const reviewResult = Astro.getActionResult(actions.reviewLoa);
+
+const [reports, pendingLoa, potentialSupervisors] = await Promise.all([
+  getDirectReports(db, user.id),
+  listPendingLoaForSupervisor(db, user.id),
+  getPotentialSupervisors(db, "supervisor"),
+]);
+
+const assignableTiers = TIERS.filter((_, i) => i <= TIERS.indexOf(user.tier));
+---
+
+<Layout title="Team | Flame Point Roleplay" description="Manage your direct reports.">
+  <section class="app-shell">
+    <div class="container">
+      <AppHeader active="team" />
+
+      <div class="app-section">
+        <h2>Your Team</h2>
+        {updateResult?.error && <div class="alert alert-error">{updateResult.error.message}</div>}
+
+        {
+          reports.length === 0 ? (
+            <p class="empty-note">Nobody currently reports to you.</p>
+          ) : (
+            <div style="display: flex; flex-direction: column; gap: 20px; margin-top: 24px;">
+              {reports.map((r) => (
+                <form action={actions.updateReport} method="POST" class="card">
+                  <input type="hidden" name="userId" value={r.id} />
+                  <h3>
+                    {r.username} <span class={`badge badge-${r.tier}`}>{tierLabel(r.tier)}</span>
+                  </h3>
+                  <div class="field-row">
+                    <div class="field">
+                      <label>Tier</label>
+                      <select name="tier">
+                        {assignableTiers.map((t) => (
+                          <option value={t} selected={t === r.tier}>{tierLabel(t)}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label>Reports to</label>
+                      <select name="supervisorId">
+                        {potentialSupervisors.map((s) => (
+                          <option value={s.id} selected={s.id === r.supervisorId}>{s.username} ({tierLabel(s.tier)})</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div class="field-row">
+                    <div class="field">
+                      <label>Department</label>
+                      <input type="text" name="department" value={r.department ?? ""} placeholder="e.g. Fire & Rescue" />
+                    </div>
+                    <div class="field">
+                      <label>Rank</label>
+                      <input type="text" name="rank" value={r.rank ?? ""} placeholder="e.g. Probationary" />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Status</label>
+                    <select name="status">
+                      <option value="active" selected={r.status === "active"}>Active</option>
+                      <option value="suspended" selected={r.status === "suspended"}>Suspended</option>
+                    </select>
+                  </div>
+                  <button type="submit" class="btn btn-outline">Save Changes</button>
+                </form>
+              ))}
+            </div>
+          )
+        }
+      </div>
+
+      <div class="app-section">
+        <h2>Pending Leave Requests</h2>
+        {reviewResult?.error && <div class="alert alert-error">{reviewResult.error.message}</div>}
+
+        {
+          pendingLoa.length === 0 ? (
+            <p class="empty-note">No pending leave requests.</p>
+          ) : (
+            <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 24px;">
+              {pendingLoa.map((req) => (
+                <div class="card">
+                  <h3 style="margin-bottom: 4px;">{req.submitter_username}</h3>
+                  <p style="margin-bottom: 4px;">{req.start_date} → {req.end_date}</p>
+                  <p>{req.reason}</p>
+                  <div class="hero-actions" style="justify-content: flex-start; margin-bottom: 0;">
+                    <form action={actions.reviewLoa} method="POST">
+                      <input type="hidden" name="requestId" value={req.id} />
+                      <input type="hidden" name="decision" value="approved" />
+                      <button type="submit" class="btn btn-primary">Approve</button>
+                    </form>
+                    <form action={actions.reviewLoa} method="POST">
+                      <input type="hidden" name="requestId" value={req.id} />
+                      <input type="hidden" name="decision" value="denied" />
+                      <button type="submit" class="btn btn-outline">Deny</button>
+                    </form>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </section>
+</Layout>

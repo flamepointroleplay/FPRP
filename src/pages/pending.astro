@@ -1,0 +1,29 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { actions } from "astro:actions";
+
+export const prerender = false;
+
+const user = Astro.locals.user!;
+const suspended = user.status === "suspended";
+---
+
+<Layout title="Access Pending | Flame Point Roleplay" description="Your Flame Point Roleplay account is awaiting staff approval.">
+  <section class="app-shell">
+    <div class="container" style="max-width: 480px; text-align: center;">
+      <p class="eyebrow">{suspended ? "Access Suspended" : "Almost There"}</p>
+      <h1>{suspended ? "Your Access Was Suspended" : "Awaiting Approval"}</h1>
+      <p class="hero-sub" style="margin-left: auto; margin-right: auto;">
+        {suspended
+          ? "A staff member has suspended your access to the member area. If you think this is a mistake, reach out in Discord."
+          : "You're logged in as " + user.username + ", but a staff member still needs to approve your account before you can see member content. Check back soon, or ask in Discord."}
+      </p>
+      <div class="hero-actions" style="margin-top: 8px;">
+        <a href="https://discord.gg/5GKxAhPa4" class="btn btn-outline btn-lg" target="_blank" rel="noopener">Open Discord</a>
+        <form action={actions.logout} method="POST">
+          <button type="submit" class="btn btn-ghost">Log Out</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</Layout>
