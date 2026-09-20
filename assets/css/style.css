@@ -177,7 +177,7 @@ p { color: var(--text-dim); margin: 0 0 16px; }
   letter-spacing: 1px;
   flex-shrink: 0;
 }
-.brand-mark { font-size: 1.4rem; }
+.brand-mark { height: 40px; width: auto; vertical-align: middle; }
 .brand-text span { color: var(--flame-2); }
 
 .main-nav {
