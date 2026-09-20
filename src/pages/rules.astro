@@ -1,0 +1,167 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const rules = [
+  {
+    title: "Respect All Players",
+    items: [
+      "Treat all players with respect. Toxic behavior, harassment, discrimination, or any form of hate speech will not be tolerated.",
+      "Personal attacks, bullying, or racist comments will lead to immediate action.",
+    ],
+  },
+  {
+    title: "No Metagaming",
+    items: [
+      "Metagaming is using information that your character wouldn't realistically know. Do not use out-of-character knowledge in in-character actions.",
+      "If you've learned something out of character, do not let it influence your in-game decisions.",
+    ],
+  },
+  {
+    title: "No Powergaming",
+    items: [
+      "Powergaming is forcing actions upon others, such as roleplaying actions that another player has no opportunity to respond to or react to. Always give other players the chance to roleplay their reactions.",
+    ],
+  },
+  {
+    title: "No RDM or VDM",
+    items: [
+      "Killing another player without a valid roleplay reason (RDM) is strictly prohibited.",
+      "Using a vehicle to kill or harm others without proper roleplay justification (VDM) is also forbidden.",
+      "Always ensure your actions in-game have a logical roleplay basis.",
+    ],
+  },
+  {
+    title: "No Cheating or Exploiting",
+    items: [
+      "Any use of mods, hacks, or exploits to gain an unfair advantage over other players is strictly prohibited.",
+      "This includes using glitches or bugs to your advantage — report any bugs or issues to staff immediately.",
+    ],
+  },
+  {
+    title: "No Advertising Other FiveM Servers",
+    items: [
+      "Advertising or discussing other FiveM servers, communities, or platforms inside the Flame Point Roleplay Discord or in-game is strictly prohibited.",
+      "This includes sharing links, server names, or anything else related to competing servers or roleplay communities.",
+    ],
+  },
+  {
+    title: "No Excessive Spawn Killing",
+    items: [
+      "Spawn killing, or repeatedly killing players as soon as they spawn, is not allowed. Give other players a chance to get into the game and participate in roleplay.",
+    ],
+  },
+  {
+    title: "No Non-Roleplay Behavior (NRP)",
+    items: [
+      "Actions that break the immersion of the server or do not fit within the roleplay context are not allowed. This includes excessive trolling, trolling with vehicles, or random non-roleplay actions.",
+    ],
+  },
+  {
+    title: "Follow IC/OOC Guidelines",
+    items: [
+      "Use OOC for out-of-character conversations in the correct channels (e.g., OOC chat, voice).",
+      "Keep OOC discussions separate from IC roleplay — mixing the two will result in penalties.",
+    ],
+  },
+  {
+    title: "No Exploiting Server Systems",
+    items: [
+      "Do not abuse server systems, such as the economy, vehicles, jobs, or other features. This includes exploiting any systems to gain money, items, or power.",
+    ],
+  },
+  {
+    title: "Respect Server Staff",
+    items: [
+      "Server staff are here to ensure fair and smooth gameplay. If you have an issue, respect the staff member's decision and approach them respectfully.",
+      "If you disagree with a decision, use the proper channels to appeal.",
+    ],
+  },
+  {
+    title: "No Toxic Behavior",
+    items: [
+      "Excessive cursing, flaming, or harassment towards other players or staff will not be tolerated. Keep the community friendly and respectful.",
+    ],
+  },
+  {
+    title: "Roleplay Standards",
+    items: [
+      "We expect a high standard of roleplay in this server. Players should be dedicated to creating fun, immersive, and engaging stories.",
+      "Avoid actions that disrupt roleplay or hinder others from enjoying their experience.",
+    ],
+  },
+  {
+    title: "Use Common Sense",
+    items: [
+      "If an action feels wrong or out of place, it probably is. Always consider how your actions affect others' enjoyment and strive to keep the experience fun for everyone involved.",
+    ],
+  },
+  {
+    title: "Follow Discord & In-Game Instructions",
+    items: [
+      "If you are given instructions by staff or community moderators, follow them in a timely manner. They're there to help ensure smooth gameplay and a positive experience for everyone.",
+    ],
+  },
+  {
+    title: "No Promoting Other Servers",
+    items: [
+      "There shall not be any promoting, merging, partnership requests, or anything to do with another server inside the FPRP Discord or FiveM server. This includes, but is not limited to, screensharing, posting, or advertising another server inside FPRP.",
+      "You are welcome to play on other servers, but may not promote or advertise them inside FPRP.",
+    ],
+  },
+  {
+    title: "No Criminal Roleplay",
+    items: [
+      "FPRP does not have law enforcement besides the Fire Marshals — you are not allowed to roleplay breaking the law, unless doing so as an act of arson or as part of a scene for the fire department.",
+      "You can break the law, but there is no criminal roleplay: cops will not come after you, and if a situation arises where cops would need to respond, it will be handled as an admin action, not in a roleplay sense.",
+      "When it comes to harming the life of a firefighter or medical personnel, you must contact server staff, explain the scene, and get permission first.",
+    ],
+  },
+];
+---
+
+<Layout
+  title="Server Rules | Flame Point Roleplay"
+  description="Read the official server rules for Flame Point Roleplay, a whitelisted FiveM roleplay community."
+  active="rules"
+>
+  <section class="page-hero">
+    <div class="container">
+      <p class="eyebrow reveal">Please Read Carefully</p>
+      <h1 class="reveal">Server Rules</h1>
+      <p class="hero-sub reveal">
+        These rules exist to protect the roleplay experience for everyone. Ignorance of the rules
+        is never an accepted excuse — by connecting to Flame Point Roleplay, you agree to follow
+        them.
+      </p>
+    </div>
+  </section>
+
+  <section class="section rules-page">
+    <div class="container rules-grid">
+      {
+        rules.map((rule, i) => (
+          <article class="card rule-block reveal">
+            <h2>
+              <span class="rule-index">{String(i + 1).padStart(2, "0")}</span> {rule.title}
+            </h2>
+            <ul class="rule-list">
+              {rule.items.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          </article>
+        ))
+      }
+    </div>
+
+    <div class="container rules-note reveal">
+      <p>
+        These rules are a summary and may be expanded by staff discretion. The full, up-to-date
+        rulebook is always maintained in the{" "}
+        <a href="https://discord.gg/5GKxAhPa4" target="_blank" rel="noopener">official Discord</a>.
+        Rules are subject to change as the community grows.
+      </p>
+      <a href="/apply" class="btn btn-primary btn-lg">Continue to Whitelist Application</a>
+    </div>
+  </section>
+</Layout>

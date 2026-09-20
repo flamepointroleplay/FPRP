@@ -1,0 +1,31 @@
+---
+interface Props {
+  active?: "rules" | "apply";
+}
+const { active } = Astro.props;
+---
+
+<header class="site-header" id="site-header">
+  <div class="container header-inner">
+    <a href="/" class="brand">
+      <img class="brand-mark" src="/img/logo.png" alt="Flame Point Roleplay badge" width="40" height="40" />
+      <span class="brand-text">FLAME POINT <span>ROLEPLAY</span></span>
+    </a>
+
+    <nav class="main-nav" id="main-nav">
+      <a href="/#features">Features</a>
+      <a href="/#join">How to Join</a>
+      <a href="/rules" class={active === "rules" ? "active" : undefined}>Rules</a>
+      <a href="/apply" class={active === "apply" ? "active" : undefined}>Apply</a>
+      <a href="/#faq">FAQ</a>
+    </nav>
+
+    <div class="header-actions">
+      <a href="https://discord.gg/5GKxAhPa4" class="btn btn-ghost" target="_blank" rel="noopener">Discord</a>
+      <a href="fivem://connect/connect.flamepointrp.com" class="btn btn-primary">Connect Now</a>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
