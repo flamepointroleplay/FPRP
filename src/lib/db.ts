@@ -96,6 +96,19 @@ export async function getPendingUsers(db: D1Database) {
   return results.map(mapUser);
 }
 
+const TIER_ORDER = "CASE u.tier WHEN 'staff' THEN 0 WHEN 'chief' THEN 1 WHEN 'supervisor' THEN 2 ELSE 3 END";
+
+export async function listAllUsers(db: D1Database) {
+  const { results } = await db
+    .prepare(
+      `SELECT u.*, s.username AS supervisor_username FROM users u
+       LEFT JOIN users s ON s.id = u.supervisor_id
+       ORDER BY ${TIER_ORDER} ASC, u.username ASC`
+    )
+    .all<UserRow & { supervisor_username: string | null }>();
+  return results.map((row) => ({ ...mapUser(row), supervisorUsername: row.supervisor_username }));
+}
+
 export async function getDirectReports(db: D1Database, supervisorId: number) {
   const { results } = await db
     .prepare(`SELECT * FROM users WHERE supervisor_id = ?1 ORDER BY username ASC`)

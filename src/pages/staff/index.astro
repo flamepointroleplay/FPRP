@@ -3,7 +3,7 @@ import Layout from "../../layouts/Layout.astro";
 import AppHeader from "../../components/AppHeader.astro";
 import { actions } from "astro:actions";
 import { env } from "cloudflare:workers";
-import { getPendingUsers, getPotentialSupervisors, listVisibleResources } from "../../lib/db";
+import { getPendingUsers, getPotentialSupervisors, listVisibleResources, listAllUsers } from "../../lib/db";
 import { TIERS, tierLabel } from "../../lib/tier";
 
 export const prerender = false;
@@ -13,10 +13,11 @@ const db = env.DB;
 const approveResult = Astro.getActionResult(actions.approveMember);
 const resourceResult = Astro.getActionResult(actions.addResource);
 
-const [pendingUsers, potentialSupervisors, resources] = await Promise.all([
+const [pendingUsers, potentialSupervisors, resources, allUsers] = await Promise.all([
   getPendingUsers(db),
   getPotentialSupervisors(db, "supervisor"),
   listVisibleResources(db, "staff"),
+  listAllUsers(db),
 ]);
 ---
 
@@ -79,6 +80,48 @@ const [pendingUsers, potentialSupervisors, resources] = await Promise.all([
                 </div>
               ))}
             </div>
+          )
+        }
+      </div>
+
+      <div class="app-section">
+        <h2>All Members</h2>
+        <p class="empty-note" style="font-style: normal; margin-bottom: 20px;">
+          Everyone who has logged in to the website ({allUsers.length} total).
+        </p>
+
+        {
+          allUsers.length === 0 ? (
+            <p class="empty-note">Nobody has logged in yet.</p>
+          ) : (
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Tier</th>
+                  <th>Department</th>
+                  <th>Rank</th>
+                  <th>Reports To</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {allUsers.map((u) => (
+                  <tr>
+                    <td>{u.username}</td>
+                    <td><span class={`badge badge-${u.tier}`}>{tierLabel(u.tier)}</span></td>
+                    <td>{u.department ?? "—"}</td>
+                    <td>{u.rank ?? "—"}</td>
+                    <td>{u.supervisorUsername ?? "—"}</td>
+                    <td>
+                      <span class={`badge badge-${u.status === "active" ? "approved" : u.status === "suspended" ? "suspended" : "pending"}`}>
+                        {u.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )
         }
       </div>
