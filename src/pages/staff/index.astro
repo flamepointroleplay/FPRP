@@ -9,9 +9,11 @@ import { TIERS, tierLabel } from "../../lib/tier";
 export const prerender = false;
 
 const db = env.DB;
+const user = Astro.locals.user!;
 
 const approveResult = Astro.getActionResult(actions.approveMember);
 const resourceResult = Astro.getActionResult(actions.addResource);
+const updateResult = Astro.getActionResult(actions.updateReport);
 
 const [pendingUsers, potentialSupervisors, resources, allUsers] = await Promise.all([
   getPendingUsers(db),
@@ -19,6 +21,8 @@ const [pendingUsers, potentialSupervisors, resources, allUsers] = await Promise.
   listVisibleResources(db, "staff"),
   listAllUsers(db),
 ]);
+
+const assignableTiers = TIERS.filter((_, i) => i <= TIERS.indexOf(user.tier));
 ---
 
 <Layout title="Staff Area | Flame Point Roleplay" description="Staff administration area.">
@@ -87,41 +91,73 @@ const [pendingUsers, potentialSupervisors, resources, allUsers] = await Promise.
       <div class="app-section">
         <h2>All Members</h2>
         <p class="empty-note" style="font-style: normal; margin-bottom: 20px;">
-          Everyone who has logged in to the website ({allUsers.length} total).
+          Everyone who has logged in to the website ({allUsers.length} total). Staff can edit anyone here.
         </p>
+        {updateResult?.error && <div class="alert alert-error">{updateResult.error.message}</div>}
 
         {
           allUsers.length === 0 ? (
             <p class="empty-note">Nobody has logged in yet.</p>
           ) : (
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Username</th>
-                  <th>Tier</th>
-                  <th>Department</th>
-                  <th>Rank</th>
-                  <th>Reports To</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {allUsers.map((u) => (
-                  <tr>
-                    <td>{u.username}</td>
-                    <td><span class={`badge badge-${u.tier}`}>{tierLabel(u.tier)}</span></td>
-                    <td>{u.department ?? "—"}</td>
-                    <td>{u.rank ?? "—"}</td>
-                    <td>{u.supervisorUsername ?? "—"}</td>
-                    <td>
-                      <span class={`badge badge-${u.status === "active" ? "approved" : u.status === "suspended" ? "suspended" : "pending"}`}>
-                        {u.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              {allUsers.map((u) => (
+                <details class="card">
+                  <summary style="cursor: pointer; display: flex; align-items: center; gap: 10px; list-style: none;">
+                    <strong>{u.username}</strong>
+                    <span class={`badge badge-${u.tier}`}>{tierLabel(u.tier)}</span>
+                    <span class={`badge badge-${u.status === "active" ? "approved" : u.status === "suspended" ? "suspended" : "pending"}`}>
+                      {u.status}
+                    </span>
+                    <span class="empty-note" style="margin-left: auto;">
+                      {u.department ?? "No department"} {u.rank ? `· ${u.rank}` : ""} {u.supervisorUsername ? `· reports to ${u.supervisorUsername}` : ""}
+                    </span>
+                  </summary>
+
+                  <form action={actions.updateReport} method="POST" style="margin-top: 20px;">
+                    <input type="hidden" name="userId" value={u.id} />
+                    <div class="field-row">
+                      <div class="field">
+                        <label>Tier</label>
+                        <select name="tier">
+                          {assignableTiers.map((t) => (
+                            <option value={t} selected={t === u.tier}>{tierLabel(t)}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div class="field">
+                        <label>Reports to</label>
+                        <select name="supervisorId">
+                          <option value="">— None —</option>
+                          {potentialSupervisors
+                            .filter((s) => s.id !== u.id)
+                            .map((s) => (
+                              <option value={s.id} selected={s.id === u.supervisorId}>{s.username} ({tierLabel(s.tier)})</option>
+                            ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div class="field-row">
+                      <div class="field">
+                        <label>Department</label>
+                        <input type="text" name="department" value={u.department ?? ""} placeholder="e.g. Fire Department" />
+                      </div>
+                      <div class="field">
+                        <label>Rank</label>
+                        <input type="text" name="rank" value={u.rank ?? ""} placeholder="e.g. Firefighter 1" />
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label>Status</label>
+                      <select name="status">
+                        <option value="active" selected={u.status === "active"}>Active</option>
+                        <option value="suspended" selected={u.status === "suspended"}>Suspended</option>
+                      </select>
+                    </div>
+                    <button type="submit" class="btn btn-outline">Save Changes</button>
+                  </form>
+                </details>
+              ))}
+            </div>
           )
         }
       </div>

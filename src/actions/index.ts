@@ -94,7 +94,9 @@ export const server = {
       const db = env.DB;
 
       const target = await getUserById(db, input.userId);
-      if (!target || target.supervisorId !== user.id) {
+      const isDirectReport = target?.supervisorId === user.id;
+      const isStaff = tierAtLeast(user.tier, "staff");
+      if (!target || (!isDirectReport && !isStaff)) {
         throw new ActionError({ code: "FORBIDDEN", message: "That person doesn't report to you." });
       }
 
